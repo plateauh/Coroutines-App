@@ -17,6 +17,7 @@ import retrofit2.Response
 
 lateinit var adviceTextView: TextView
 lateinit var adviceButton: Button
+var advice: String? = "Hit the button below to get an advice"
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,7 +27,7 @@ class MainActivity : AppCompatActivity() {
         adviceButton = findViewById(R.id.advice_btn)
         adviceButton.setOnClickListener {
             CoroutineScope(IO).launch {
-                val advice = getAdvice()
+                getAdvice()
                 withContext(Main) {
                     adviceTextView.text = advice
                 }
@@ -34,20 +35,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun getAdvice(): String? {
-        var advice: String? = "Problem getting advice"
+    private fun getAdvice()  {
         val apiInterface = APIClient().getClient()?.create(APIInterface::class.java)
         val call: Call<AdviceData?>? = apiInterface!!.doGetListResources()
         call?.enqueue(object : Callback<AdviceData?> {
             override fun onResponse(call: Call<AdviceData?>?, response: Response<AdviceData?>) {
                 val adviceData: AdviceData? = response.body()
                 advice = adviceData?.slip?.advice
-                Log.d("advice-value", "$advice")
             }
             override fun onFailure(call: Call<AdviceData?>, t: Throwable) {
                 call.cancel()
             }
         })
-        return advice
     }
 }
